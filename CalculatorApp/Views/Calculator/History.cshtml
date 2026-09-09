@@ -1,0 +1,70 @@
+﻿@* @model CalculatorApp.Models.CalculationHistory
+
+<h2>Calculation History</h2>
+
+@if (Model.Operations.Count == 0)
+{
+    <p>No history available.</p>
+}
+else
+{
+    <ul>
+        @foreach (var item in Model.Operations)
+        {
+            <li>@item</li>
+        }
+    </ul>
+} *@
+
+@model CalculatorApp.Models.CalculationHistory
+
+<div class="container mt-4">
+
+    <h2>Calculation History</h2>
+
+    <a asp-action="Index"
+       asp-controller="Calculator"
+       class="btn btn-primary mb-3">
+        Back to Calculator
+    </a>
+
+    <a asp-action="ClearHistory"
+       asp-controller="Calculator"
+       class="btn btn-danger mb-3">
+        Clear History
+    </a>
+
+    @if (!Model.Operations.Any())
+    {
+        <div class="alert alert-warning">
+            No history available.
+        </div>
+    }
+    else
+    {
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>S.No</th>
+                    <th>Operation</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int count = 1;
+                }
+
+                @foreach (var item in Model.Operations.AsEnumerable().Reverse())
+                {
+                    <tr>
+                        <td>@count</td>
+                        <td>@item</td>
+                    </tr>
+
+                    count++;
+                }
+            </tbody>
+        </table>
+    }
+
+</div>

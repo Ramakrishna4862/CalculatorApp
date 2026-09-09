@@ -1,0 +1,111 @@
+﻿@* @model CalculatorApp.Models.Calculator
+
+<h1>Calculator</h1> *@
+
+@* <form asp-controller="Calculator" asp-action="Add" method="post">  *@
+@* <form method="get">
+    <label>Number 1</label>
+    <input type="number" name="number1" />
+    <br /><br />
+
+    <label>Number 2</label>
+    <input type="number" name="number2" />
+    <br /><br /> *@
+
+@*     <button type="submit" asp-controller="Calculator" asp-action="Add">Add</button>
+    <button type="submit" asp-controller="Calculator" asp-action="Subtract">Subtract</button>
+    <button type="submit" asp-controller="Calculator" asp-action="Multiply">Multiply</button> *@
+    @* <button type="submit" form-action="/Calculator/Add">Add</button>
+    <button type="submit" form-action="/Calculator/Subtract">Subtract</button>
+    <button type="submit" form-action="/Calculator/Multiply">Multiply</button>
+    <button type="submit" form-action="/Calculator/Divide">Divide</button>
+</form> *@
+
+@* @if (Model != null)
+{
+    <h3>Result: @Model.Result</h3>
+} *@
+
+@model CalculatorApp.Models.Calculator
+
+<div class="container mt-5">
+    <div class="card shadow p-4">
+        <h2 class="text-center mb-4">Calculator</h2>
+
+        <form method="get">
+
+            <div class="mb-3">
+                <label class="form-label">Number 1</label>
+                <input type="number" name="number1" class="form-control" value="@Model?.Number1" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Number 2</label>
+                <input type="number" name="number2" class="form-control" value="@Model?.Number2" />
+            </div>
+
+            <div class="mb-3">
+                <button type="submit" formaction="/Calculator/Add" class="btn btn-primary">
+                    Add
+                </button>
+
+                <button type="submit" formaction="/Calculator/Subtract" class="btn btn-warning">
+                    Subtract
+                </button>
+
+                <button type="submit" formaction="/Calculator/Multiply" class="btn btn-success">
+                    Multiply
+                </button>
+
+                <button type="submit" formaction="/Calculator/Divide" class="btn btn-danger">
+                    Divide
+                </button>
+
+                <button type="submit" formaction="/Calculator/Clear" class="btn btn-secondary">Clear</button>
+
+                <a asp-controller="Calculator"
+                   asp-action="History"
+                   class="btn btn-info">
+                    View History
+                </a>    
+
+                <a asp-action="ClearHistory" asp-controller="Calculator" class="btn btn-danger">
+                  Clear History
+                </a>
+                <hr/>
+            </div>
+
+        </form>
+        @if (Model != null && !string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger">
+                @Model.ErrorMessage
+            </div>
+        }
+
+       @*  @if (Model != null)
+        {
+            <div class="alert alert-info">
+                <strong>Result:</strong> @Model.Result
+            </div>
+        } *@
+
+        @* @if (Model != null && string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-info">
+                <strong>Result:</strong> @Model.Result
+            </div>
+        } *@
+
+        @if (Model != null && Model.IsCalculated)
+        {
+            <div class="alert alert-info">
+                <strong>Result:</strong> @Model.Result
+            </div>
+
+            <div class="alert alert-success">
+                <strong>Operation:</strong> @Model.Operation
+            </div>
+        }
+    </div>
+</div>
