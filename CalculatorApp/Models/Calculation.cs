@@ -1,12 +1,12 @@
-﻿namespace CalculatorApp.Models
-{
-    public class Calculation
+﻿    namespace CalculatorApp.Models
     {
-        public int Id { get; set; }
-        public int Number1 { get; set; }
-        public int Number2 { get; set; }
-        public string Operation { get; set; } = string.Empty;
-        public double Result { get; set; }
-        public DateTime CreatedDate { get; set; }
+        public class Calculation
+        {
+            public int Id { get; set; }
+            public int Number1 { get; set; }
+            public int Number2 { get; set; }
+            public string Operation { get; set; } = string.Empty;
+            public double Result { get; set; }
+            public DateTime CreatedDate { get; set; } = DateTime.Now;
+        }
     }
-}

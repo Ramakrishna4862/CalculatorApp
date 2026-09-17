@@ -1,11 +1,21 @@
 ﻿using CalculatorApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using CalculatorApp.Data;
 
 namespace CalculatorApp.Controllers
 {
+
     public class CalculatorController : Controller
     {
+        private readonly ApplicationDbContext _context;
+
+        public CalculatorController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+
         public IActionResult Index()
         {
             return View();
@@ -43,9 +53,20 @@ namespace CalculatorApp.Controllers
             //else
             //{
 
-                calculator.Result = number1.Value + number2.Value;
-                calculator.Operation = $"{number1} + {number2} = {calculator.Result}";
-                SaveHistory(calculator.Operation);
+            calculator.Result = number1.Value + number2.Value;
+            calculator.Operation = $"{number1} + {number2} = {calculator.Result}";
+            //SaveHistory(calculator.Operation);
+            Calculation calculation = new Calculation
+            {
+                Number1 = number1.Value,
+                Number2 = number2.Value,
+                Operation = "+",
+                Result = calculator.Result,
+                CreatedDate = DateTime.Now
+            };
+            _context.Calculations.Add(calculation);
+            _context.SaveChanges();
+
                 calculator.IsCalculated = true;
                 return View("Index", calculator);
             //}
@@ -68,7 +89,18 @@ namespace CalculatorApp.Controllers
             }
             calculator.Result = number1.Value - number2.Value;
             calculator.Operation = $"{number1} - {number2} = {calculator.Result}";
-            SaveHistory(calculator.Operation);
+            //SaveHistory(clculator.Operation);
+            Calculation calculation = new Calculation
+            {
+                Number1 = number1.Value,
+                Number2 = number2.Value,
+                Operation = "-",
+                Result = calculator.Result,
+                CreatedDate = DateTime.Now
+            };
+            _context.Calculations.Add(calculation);
+            _context.SaveChanges();
+
             calculator.IsCalculated = true;
             return View("Index", calculator);
         }
@@ -87,7 +119,18 @@ namespace CalculatorApp.Controllers
             }
             calculator.Result = number1.Value * number2.Value;
             calculator.Operation = $"{number1} * {number2} = {calculator.Result}";
-            SaveHistory(calculator.Operation);
+            //SaveHistory(calculator.Operation);
+            Calculation calculation = new Calculation
+            {
+                Number1 = number1.Value,
+                Number2 = number2.Value,
+                Operation = "*",
+                Result = calculator.Result,
+                CreatedDate = DateTime.Now
+            };
+            _context.Calculations.Add(calculation);
+            _context.SaveChanges();
+
             calculator.IsCalculated = true;
             return View("Index", calculator);
         }
@@ -115,7 +158,18 @@ namespace CalculatorApp.Controllers
 
             calculator.Result = (double)number1.Value / number2.Value;
             calculator.Operation = $"{number1} / {number2} = {calculator.Result}";
-            SaveHistory(calculator.Operation);
+            //SaveHistory(calculator.Operation);
+            Calculation calculation = new Calculation
+            { 
+                Number1 = number1.Value,
+                Number2 = number2.Value,
+                Operation = "/",
+                Result = calculator.Result,
+                CreatedDate = DateTime.Now
+            };
+            _context.Calculations.Add(calculation);
+            _context.SaveChanges();
+
             calculator.IsCalculated = true;
             return View("Index", calculator);
             
@@ -162,17 +216,27 @@ namespace CalculatorApp.Controllers
         }
 
 
+        //public IActionResult History()
+        //{ 
+        //    CalculationHistory model = new CalculationHistory();
+        //    model.Operations = GetHistory();
+        //    return View(model);
+        //}
+
         public IActionResult History()
-        { 
-            CalculationHistory model = new CalculationHistory();
-            model.Operations = GetHistory();
-            return View(model);
+        {
+            List<Calculation> calculations = _context.Calculations.OrderByDescending(c => c.CreatedDate).ToList();
+            return View(calculations); 
         }
 
         public IActionResult ClearHistory()
         {
-            HttpContext.Session.Remove("CalculationHistory");
+            //HttpContext.Session.Remove("CalculationHistory");
+            //return RedirectToAction("History");
+            _context.Calculations.RemoveRange(_context.Calculations);
+            _context.SaveChanges();
             return RedirectToAction("History");
+
         }
 
         private bool ValidateNumbers(Calculator calculator, int? number1,int? number2)
@@ -184,6 +248,87 @@ namespace CalculatorApp.Controllers
             }
             return true;
         }
+
+        public IActionResult Delete(int id)
+        {
+            Calculation? calculation = _context.Calculations.Find(id);
+            if(calculation == null)
+            {
+                return NotFound();
+            }
+            _context.Calculations.Remove(calculation);
+            _context.SaveChanges();
+            return RedirectToAction("History");
+        }
+
+        //public IActionResult Edit(int id)
+        //{
+        //    Calculation? calculation = _context.Calculations.Find(id);
+        //    if (calculation == null)
+        //    {
+        //        return NotFound();
+        //    }
+        //    return View(calculation);
+        //}
+
+        [HttpPost]
+
+        public IActionResult Edit(Calculation calculation)
+        {
+            Calculation? existingCalculation = _context.Calculations.Find(calculation.Id);
+            if (existingCalculation == null)
+            {
+                return NotFound();
+            }
+
+            if (calculation.Operation == "/" && calculation.Number2 == 0)
+            {
+                ModelState.AddModelError("Number2", "Cannot divided by zero.");
+                return View(calculation);
+            }
+
+            existingCalculation.Number1 = calculation.Number1;
+            existingCalculation.Number2 = calculation.Number2;
+
+
+            existingCalculation.Operation = calculation.Operation;
+
+            if (calculation.Operation == "+")
+            {
+                existingCalculation.Result = calculation.Number1 + calculation.Number2;
+            }
+            else if (calculation.Operation == "-")
+            {
+                existingCalculation.Result = calculation.Number1 - calculation.Number2;
+            }
+            else if (calculation.Operation == "*")
+            {
+                existingCalculation.Result = calculation.Number1 * calculation.Number2;
+            }
+            else if(calculation.Operation == "/")
+            {
+                //if(calculation.Number2 == 0)
+                //{
+                //    return Content("Cannot divide by zero");
+                //}
+                existingCalculation.Result = (double)calculation.Number1 / calculation.Number2;
+            }
+                _context.SaveChanges();
+            return RedirectToAction("History");
+        }
+
+        public IActionResult Edit(int id)
+        {
+            Calculation? calculation = _context.Calculations.Find(id);
+
+            if (calculation == null)
+            {
+                return NotFound();
+            }
+
+            return View(calculation);
+        }
+
 
 
     }

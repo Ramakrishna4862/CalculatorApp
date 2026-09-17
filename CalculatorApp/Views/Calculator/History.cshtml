@@ -16,55 +16,74 @@ else
     </ul>
 } *@
 
-@model CalculatorApp.Models.CalculationHistory
+@* @model CalculatorApp.Models.CalculationHistory *@
+@* @model List<CalculatorApp.Models.Calculation>
+? *@
 
-<div class="container mt-4">
 
-    <h2>Calculation History</h2>
+@model List<CalculatorApp.Models.Calculation>
 
-    <a asp-action="Index"
-       asp-controller="Calculator"
-       class="btn btn-primary mb-3">
-        Back to Calculator
-    </a>
+    <div class="container mt-4">
+        <h2 class="mb-3">Calculation History</h2>
+        <a asp-action="Index" asp-controller="Calculator" class="btn btn-primary mb-3">
+            Back to Calculator
+        </a>
 
-    <a asp-action="ClearHistory"
-       asp-controller="Calculator"
-       class="btn btn-danger mb-3">
-        Clear History
-    </a>
+        <a asp-action="ClearHistory" asp-controller="Calculator" class="btn btn-danger mb-3" 
+        onlick="return confirm('Are you sure want to clear all history?');">Clear History</a>
 
-    @if (!Model.Operations.Any())
+
+    
+        @if (Model != null && Model.Count > 0)
     {
-        <div class="alert alert-warning">
-            No history available.
-        </div>
+        <table class="table table-bordered table-striped">
+
+            <thead class="table-dark">
+                <tr>
+                    <th>Id</th>
+                    <th>Number 1</th>
+                    <th>Operation</th>
+                    <th>Number 2</th>
+                    <th>Result</th>
+                    <th>Created Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var calculation in Model)
+                {
+                    <tr>
+                        <td>@calculation.Id</td>
+                        <td>@calculation.Number1</td>
+                        <td>@calculation.Operation</td>
+                        <td>@calculation.Number2</td>
+                        <td>@calculation.Result</td>
+                        <td>@calculation.CreatedDate</td>
+
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@calculation.Id" class="btn btn-warning btn-sm">
+                                Edit
+                            </a>
+
+                            <a asp-action="Delete"
+                               asp-route-id="@calculation.Id"
+                               class="btn btn-danger btn-sm"
+                               onclick="return confirm('Are you sure you want to delete this calculation?');">
+                                Delete
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+
+        </table>
     }
     else
     {
-        <table class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th>S.No</th>
-                    <th>Operation</th>
-                </tr>
-            </thead>
-            <tbody>
-                @{
-                    int count = 1;
-                }
-
-                @foreach (var item in Model.Operations.AsEnumerable().Reverse())
-                {
-                    <tr>
-                        <td>@count</td>
-                        <td>@item</td>
-                    </tr>
-
-                    count++;
-                }
-            </tbody>
-        </table>
+        <div class="alert alert-info">
+            No calculation history found.
+        </div>
     }
 
 </div>

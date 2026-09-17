@@ -1,0 +1,46 @@
+﻿@model CalculatorApp.Models.Calculation
+
+<div class="container mt-4">
+
+    <h2>Edit Calculation</h2>
+
+    <form asp-action="Edit" method="post">
+
+        <input type="hidden" asp-for="Id" />
+
+        <div class="mb-3">
+            <label asp-for="Number1" class="form-label">Number 1</label>
+            <input asp-for="Number1" class="form-control" />
+
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Operation" class="form-label">Operation</label>
+
+            <select asp-for="Operation" class="form-control">
+                <option value="+">Add (+)</option>
+                <option value="-">Subtract (-)</option>
+                <option value="*">Multiply (*)</option>
+                <option value="/">Divide (/)</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Number2" class="form-label">Number 2</label>
+            <input asp-for="Number2" class="form-control" />
+           
+            <span asp-validation-for="Number2" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-success">
+            Update
+        </button>
+
+        <a asp-action="History"
+           class="btn btn-secondary">
+            Cancel
+        </a>
+
+    </form>
+
+</div>
