@@ -30,7 +30,16 @@ namespace CalculatorApp.Controllers
             };
         }
 
-        
+        private bool ValidateNumbers(Calculator calculator, int? number1, int? number2)
+        {
+            if (number1 == null || number2 == null)
+            {
+                calculator.ErrorMessage = "Number cannot be empty";
+                return false;
+            }
+
+            return true;
+        }
 
 
 
@@ -223,42 +232,108 @@ namespace CalculatorApp.Controllers
         //    return View(model);
         //}
 
-        public IActionResult History()
-        {
-            List<Calculation> calculations = _context.Calculations.OrderByDescending(c => c.CreatedDate).ToList();
-            return View(calculations); 
-        }
+        //public IActionResult History()
+        //{
+        //    List<Calculation> calculations = _context.Calculations.OrderByDescending(c => c.CreatedDate).ToList();
+        //    return View(calculations); 
+        //}
 
-        public IActionResult ClearHistory()
-        {
-            //HttpContext.Session.Remove("CalculationHistory");
-            //return RedirectToAction("History");
-            _context.Calculations.RemoveRange(_context.Calculations);
-            _context.SaveChanges();
-            return RedirectToAction("History");
+        //public IActionResult History(string? searchText, string? operation,int page=1)
+        //{
+        //    List<Calculation> calculations;
 
-        }
+        //    if (string.IsNullOrEmpty(searchText) && string.IsNullOrEmpty(operation))
+        //    {
+        //        calculations = _context.Calculations
+        //            .OrderByDescending(c => c.CreatedDate)
+        //            .ToList();
+        //    }
+        //    else
+        //    {
+        //        calculations = _context.Calculations
+        //            .Where(c =>
+        //                (string.IsNullOrEmpty(searchText) ||
+        //                 c.Number1.ToString().Contains(searchText) ||
+        //                 c.Number2.ToString().Contains(searchText))
+        //                &&
+        //                (string.IsNullOrEmpty(operation) ||
+        //                 c.Operation == operation)
+        //            )
+        //            .OrderByDescending(c => c.CreatedDate)
+        //            .ToList();
+        //    }
 
-        private bool ValidateNumbers(Calculator calculator, int? number1,int? number2)
+        //    return View(calculations);
+        //}
+        //public IActionResult History(string? searchText, string? operation, int page = 1)
+        //{
+        //    int pageSize = 10;
+
+        //    int totalRecords = _context.Calculations.Count();
+
+        //    List<Calculation> calculations;
+
+        //    if (string.IsNullOrEmpty(searchText) && string.IsNullOrEmpty(operation))
+        //    {
+        //        calculations = _context.Calculations
+        //            .OrderByDescending(c => c.CreatedDate)
+        //            .ToList();
+        //    }
+        //    else
+        //    {
+        //        calculations = _context.Calculations
+        //            .Where(c =>
+        //                (string.IsNullOrEmpty(searchText) ||
+        //                 c.Number1.ToString().Contains(searchText) ||
+        //                 c.Number2.ToString().Contains(searchText))
+        //                &&
+        //                (string.IsNullOrEmpty(operation) ||
+        //                 c.Operation == operation)
+        //            )
+        //            .OrderByDescending(c => c.CreatedDate)
+        //            //.ToList();
+        //            .Skip((page-1)*pageSize)
+        //            .Take(pageSize)
+        //            .ToList();
+        //    }
+
+        //    return View(calculations);
+        //}
+
+        public IActionResult History(string? searchText, string? operation, int page = 1)
         {
-            if(number1 == null || number2 == null)
+            int pageSize = 10;
+
+            var query = _context.Calculations.AsQueryable();
+
+            // Search by Number 1 or Number 2
+            if (!string.IsNullOrEmpty(searchText))
             {
-                calculator.ErrorMessage = "Number cannot be empty";
-                return false;
+                query = query.Where(c =>
+                    c.Number1.ToString().Contains(searchText) ||
+                    c.Number2.ToString().Contains(searchText));
             }
-            return true;
-        }
 
-        public IActionResult Delete(int id)
-        {
-            Calculation? calculation = _context.Calculations.Find(id);
-            if(calculation == null)
+            // Filter by operation
+            if (!string.IsNullOrEmpty(operation))
             {
-                return NotFound();
+                query = query.Where(c => c.Operation == operation);
             }
-            _context.Calculations.Remove(calculation);
-            _context.SaveChanges();
-            return RedirectToAction("History");
+
+            // Count filtered records
+            int totalRecords = query.Count();
+
+            // Pagination
+            List<Calculation> calculations = query
+                .OrderByDescending(c => c.CreatedDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
+
+            return View(calculations);
         }
 
         //public IActionResult Edit(int id)
