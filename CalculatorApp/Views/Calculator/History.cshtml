@@ -1,53 +1,18 @@
-﻿@* @model CalculatorApp.Models.CalculationHistory
+﻿@model List<CalculatorApp.Models.Calculation>
 
-<h2>Calculation History</h2>
-
-@if (Model.Operations.Count == 0)
-{
-    <p>No history available.</p>
-}
-else
-{
-    <ul>
-        @foreach (var item in Model.Operations)
-        {
-            <li>@item</li>
-        }
-    </ul>
-} *@
-
-@* @model CalculatorApp.Models.CalculationHistory *@
-@* @model List<CalculatorApp.Models.Calculation>
-? *@
-
-
-@model List<CalculatorApp.Models.Calculation>
-
-    @* <div class="container mt-4">
-        <h2 class="mb-3">Calculation History</h2>
-        <a asp-action="Index" asp-controller="Calculator" class="btn btn-primary mb-3">
-            Back to Calculator
-        </a>
-
-        <a asp-action="ClearHistory" asp-controller="Calculator" class="btn btn-danger mb-3" 
-        onclick="return confirm('Are you sure want to clear all history?');">Clear History</a>
-
- *@
+   
 <form asp-action="History" method="get" class="mb-3">
     <div class="row">
         <div class="col-md-4">
             <input type="text"
                    name="searchText"
                    class="form-control"
-                   placeholder="Search Number1 or Number2" />
+                   placeholder="Search Number1 or Number2"
+                   value="@Context.Request.Query["searchText"]" />
         </div>
         <div class="col-md-3">
             <select name="operation" class="form-select">
                 <option value="">All Operations</option>
-@*                 <option value="+">Addition (+)</option>
-                <option value="-">Subtraction (-)</option>
-                <option value="*">Multiplication (*)</option>
-                <option value="/">Division (/)</option> *@
                 <option value="+" selected="@(Context.Request.Query["operation"] == "+" ? "selected" : null)">
                     Addition (+)
                 </option>
@@ -104,12 +69,17 @@ else
                                 Edit
                             </a>
 
-                            <a asp-action="Delete"
-                               asp-route-id="@calculation.Id"
-                               class="btn btn-danger btn-sm"
-                               onclick="return confirm('Are you sure you want to delete this calculation?');">
+                            <form asp-action="Delete"
+                            asp-route-id="@calculation.Id"
+                            method="post"
+                            style="display:inline;"
+                            onsubmit="return confirm('Are you sure you want to delete this calculation?');">
+
+                            <button type="submit" class="btn btn-danger btn-sm">
                                 Delete
-                            </a>
+                            </button>
+
+    </form>
                         </td>
                     </tr>
                 }
@@ -174,5 +144,3 @@ else
         </ul>
     </nav>
 }
-
-@* </div> *@

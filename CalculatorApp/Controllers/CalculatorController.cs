@@ -1,6 +1,5 @@
 ﻿using CalculatorApp.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 using CalculatorApp.Data;
 
 namespace CalculatorApp.Controllers
@@ -9,6 +8,7 @@ namespace CalculatorApp.Controllers
     public class CalculatorController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private const int PageSize = 10;
 
         public CalculatorController(ApplicationDbContext context)
         {
@@ -43,270 +43,114 @@ namespace CalculatorApp.Controllers
 
 
 
-        //[HttpPost]
+        [HttpPost]
         public IActionResult Add(int? number1, int? number2)
         {
-            //int result = number1 + number2;
-            //return Content(result.ToString());
-            //Calculator calculator = new Calculator();
-            //calculator.Number1 = number1;
-            //calculator.Number2 = number2;
             Calculator calculator = CreateCalculator(number1, number2);
 
-            //if (number1 == null || number2 == null)
-            if(!ValidateNumbers(calculator, number1, number2))
+            if (!ValidateNumbers(calculator, number1, number2))
             {
-                //calculator.ErrorMessage = "Number cannot be empty";
                 return View("Index", calculator);
             }
-            //else
-            //{
 
-            calculator.Result = number1.Value + number2.Value;
+            calculator.Result = CalculateResult(number1.Value, number2.Value, "+");
             calculator.Operation = $"{number1} + {number2} = {calculator.Result}";
-            //SaveHistory(calculator.Operation);
-            Calculation calculation = new Calculation
-            {
-                Number1 = number1.Value,
-                Number2 = number2.Value,
-                Operation = "+",
-                Result = calculator.Result,
-                CreatedDate = DateTime.Now
-            };
-            _context.Calculations.Add(calculation);
-            _context.SaveChanges();
 
-                calculator.IsCalculated = true;
-                return View("Index", calculator);
-            //}
+            SaveCalculation(number1.Value, number2.Value, "+", calculator.Result);
+
+            calculator.IsCalculated = true;
+            return View("Index", calculator);
+
 
 
         }
-        //[HttpPost]
-        public IActionResult Subtract(int? number1,int? number2)
-        {
-            //Calculator calculator = new Calculator();
 
-            //calculator.Number1 = number1;
-            //calculator.Number2 = number2;
+        [HttpPost]
+        public IActionResult Subtract(int? number1, int? number2)
+        {
             Calculator calculator = CreateCalculator(number1, number2);
-            //if (number1 == null || number2 == null)
-            if(!ValidateNumbers(calculator,number1,number2))
+            if (!ValidateNumbers(calculator, number1, number2))
             {
-                //calculator.ErrorMessage = "Number cannot be empty";
                 return View("Index", calculator);
             }
-            calculator.Result = number1.Value - number2.Value;
+            calculator.Result = CalculateResult(number1.Value, number2.Value, "-"); 
             calculator.Operation = $"{number1} - {number2} = {calculator.Result}";
-            //SaveHistory(clculator.Operation);
-            Calculation calculation = new Calculation
-            {
-                Number1 = number1.Value,
-                Number2 = number2.Value,
-                Operation = "-",
-                Result = calculator.Result,
-                CreatedDate = DateTime.Now
-            };
-            _context.Calculations.Add(calculation);
-            _context.SaveChanges();
+            SaveCalculation(number1.Value, number2.Value, "-", calculator.Result);
 
             calculator.IsCalculated = true;
             return View("Index", calculator);
         }
-        public IActionResult Multiply(int? number1,int? number2)
+
+        [HttpPost]
+        public IActionResult Multiply(int? number1, int? number2)
         {
-            //Calculator calculator = new Calculator();
-            //calculator.Number1 = number1;
-            //calculator.Number2 = number2;
             Calculator calculator = CreateCalculator(number1, number2);
 
-            //if (number1 == null || number2 == null)
-            if(!ValidateNumbers(calculator, number1, number2))
+            if (!ValidateNumbers(calculator, number1, number2))
             {
-                //calculator.ErrorMessage = "Number cannot be empty";
                 return View("Index", calculator);
             }
-            calculator.Result = number1.Value * number2.Value;
+            calculator.Result = CalculateResult(number1.Value, number2.Value, "*");
             calculator.Operation = $"{number1} * {number2} = {calculator.Result}";
-            //SaveHistory(calculator.Operation);
-            Calculation calculation = new Calculation
-            {
-                Number1 = number1.Value,
-                Number2 = number2.Value,
-                Operation = "*",
-                Result = calculator.Result,
-                CreatedDate = DateTime.Now
-            };
-            _context.Calculations.Add(calculation);
-            _context.SaveChanges();
+
+            SaveCalculation(number1.Value, number2.Value, "*", calculator.Result);
 
             calculator.IsCalculated = true;
             return View("Index", calculator);
         }
 
-        public IActionResult Divide(int? number1,int? number2)
+
+        [HttpPost]
+        public IActionResult Divide(int? number1, int? number2)
         {
-            //Calculator calculator = new Calculator();
-            //calculator.Number1 = number1;
-            //calculator.Number2 = number2;
+
             Calculator calculator = CreateCalculator(number1, number2);
 
-            //calculator.Result = number1 / number2;
-            //if (number1 == null || number2 == null)
-            if(!ValidateNumbers(calculator,number1,number2))
+
+            if (!ValidateNumbers(calculator, number1, number2))
             {
-                //calculator.ErrorMessage = "Number cannot be empty";
                 return View("Index", calculator);
             }
 
-            if(number2 == 0)
+            if (number2 == 0)
             {
                 calculator.ErrorMessage = "Cannot divide by Zero";
                 return View("Index", calculator);
             }
 
-            calculator.Result = (double)number1.Value / number2.Value;
+            calculator.Result = CalculateResult(number1.Value, number2.Value, "/");
             calculator.Operation = $"{number1} / {number2} = {calculator.Result}";
-            //SaveHistory(calculator.Operation);
-            Calculation calculation = new Calculation
-            { 
-                Number1 = number1.Value,
-                Number2 = number2.Value,
-                Operation = "/",
-                Result = calculator.Result,
-                CreatedDate = DateTime.Now
-            };
-            _context.Calculations.Add(calculation);
-            _context.SaveChanges();
+
+            SaveCalculation(number1.Value, number2.Value, "/", calculator.Result);
 
             calculator.IsCalculated = true;
             return View("Index", calculator);
-            
+
         }
         public IActionResult Clear()
         {
-            //Calculator calculator = new Calculator();
-            //calculator.IsCalculated = false;
-            //return View("Index", calculator);
             return View("Index", new Calculator());
         }
 
-        private void SaveHistory(string operation)
+
+
+
+
+
+        public IActionResult History(
+    string? searchText,
+    string? operation,
+    //string? sortColumn,
+    //string? sortOrder,
+    int page = 1)
         {
-            List<string> history;
-            string? historyJson = HttpContext.Session.GetString("CalculationHistory");
-            if(historyJson == null)
+            if(page < 1)
             {
-                history = new List<string>();
+                page = 1;
             }
-            else
-            {
-                history = JsonSerializer.Deserialize<List<string>>(historyJson) ?? new List<string>();
-            }
-
-            history.Add(operation);
-
-            if(history.Count > 10)
-            {
-                history.RemoveAt(0);
-            }
-
-            HttpContext.Session.SetString("CalculationHistory", JsonSerializer.Serialize(history));
-        }
-
-        private List<string> GetHistory()
-        {
-            string? historyJson = HttpContext.Session.GetString("CalculationHistory");
-            if(string.IsNullOrEmpty(historyJson))
-            {
-                return new List<string>();
-            }
-            return JsonSerializer.Deserialize<List<string>>(historyJson) ?? new List<string>();
-        }
-
-
-        //public IActionResult History()
-        //{ 
-        //    CalculationHistory model = new CalculationHistory();
-        //    model.Operations = GetHistory();
-        //    return View(model);
-        //}
-
-        //public IActionResult History()
-        //{
-        //    List<Calculation> calculations = _context.Calculations.OrderByDescending(c => c.CreatedDate).ToList();
-        //    return View(calculations); 
-        //}
-
-        //public IActionResult History(string? searchText, string? operation,int page=1)
-        //{
-        //    List<Calculation> calculations;
-
-        //    if (string.IsNullOrEmpty(searchText) && string.IsNullOrEmpty(operation))
-        //    {
-        //        calculations = _context.Calculations
-        //            .OrderByDescending(c => c.CreatedDate)
-        //            .ToList();
-        //    }
-        //    else
-        //    {
-        //        calculations = _context.Calculations
-        //            .Where(c =>
-        //                (string.IsNullOrEmpty(searchText) ||
-        //                 c.Number1.ToString().Contains(searchText) ||
-        //                 c.Number2.ToString().Contains(searchText))
-        //                &&
-        //                (string.IsNullOrEmpty(operation) ||
-        //                 c.Operation == operation)
-        //            )
-        //            .OrderByDescending(c => c.CreatedDate)
-        //            .ToList();
-        //    }
-
-        //    return View(calculations);
-        //}
-        //public IActionResult History(string? searchText, string? operation, int page = 1)
-        //{
-        //    int pageSize = 10;
-
-        //    int totalRecords = _context.Calculations.Count();
-
-        //    List<Calculation> calculations;
-
-        //    if (string.IsNullOrEmpty(searchText) && string.IsNullOrEmpty(operation))
-        //    {
-        //        calculations = _context.Calculations
-        //            .OrderByDescending(c => c.CreatedDate)
-        //            .ToList();
-        //    }
-        //    else
-        //    {
-        //        calculations = _context.Calculations
-        //            .Where(c =>
-        //                (string.IsNullOrEmpty(searchText) ||
-        //                 c.Number1.ToString().Contains(searchText) ||
-        //                 c.Number2.ToString().Contains(searchText))
-        //                &&
-        //                (string.IsNullOrEmpty(operation) ||
-        //                 c.Operation == operation)
-        //            )
-        //            .OrderByDescending(c => c.CreatedDate)
-        //            //.ToList();
-        //            .Skip((page-1)*pageSize)
-        //            .Take(pageSize)
-        //            .ToList();
-        //    }
-
-        //    return View(calculations);
-        //}
-
-        public IActionResult History(string? searchText, string? operation, int page = 1)
-        {
-            int pageSize = 10;
 
             var query = _context.Calculations.AsQueryable();
 
-            // Search by Number 1 or Number 2
             if (!string.IsNullOrEmpty(searchText))
             {
                 query = query.Where(c =>
@@ -314,7 +158,6 @@ namespace CalculatorApp.Controllers
                     c.Number2.ToString().Contains(searchText));
             }
 
-            // Filter by operation
             if (!string.IsNullOrEmpty(operation))
             {
                 query = query.Where(c => c.Operation == operation);
@@ -326,25 +169,24 @@ namespace CalculatorApp.Controllers
             // Pagination
             List<Calculation> calculations = query
                 .OrderByDescending(c => c.CreatedDate)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
                 .ToList();
 
+            int totalPages = (int)Math.Ceiling((double)totalRecords / PageSize);
+
+            if (totalPages > 0 && page > totalPages)
+            {
+                page = totalPages;
+            }
+
             ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
+            ViewBag.TotalPages = totalPages;
 
             return View(calculations);
         }
 
-        //public IActionResult Edit(int id)
-        //{
-        //    Calculation? calculation = _context.Calculations.Find(id);
-        //    if (calculation == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    return View(calculation);
-        //}
+
 
         [HttpPost]
 
@@ -367,28 +209,14 @@ namespace CalculatorApp.Controllers
 
 
             existingCalculation.Operation = calculation.Operation;
+            existingCalculation.Result = CalculateResult(
+    calculation.Number1,
+    calculation.Number2,
+    calculation.Operation
+);
 
-            if (calculation.Operation == "+")
-            {
-                existingCalculation.Result = calculation.Number1 + calculation.Number2;
-            }
-            else if (calculation.Operation == "-")
-            {
-                existingCalculation.Result = calculation.Number1 - calculation.Number2;
-            }
-            else if (calculation.Operation == "*")
-            {
-                existingCalculation.Result = calculation.Number1 * calculation.Number2;
-            }
-            else if(calculation.Operation == "/")
-            {
-                //if(calculation.Number2 == 0)
-                //{
-                //    return Content("Cannot divide by zero");
-                //}
-                existingCalculation.Result = (double)calculation.Number1 / calculation.Number2;
-            }
-                _context.SaveChanges();
+
+            _context.SaveChanges();
             return RedirectToAction("History");
         }
 
@@ -404,7 +232,47 @@ namespace CalculatorApp.Controllers
             return View(calculation);
         }
 
+        [HttpPost]
+        public IActionResult Delete(int id)
+        {
+            Calculation? calculation = _context.Calculations.Find(id);
+            if (calculation == null)
+            {
+                return NotFound();
+            }
+            _context.Calculations.Remove(calculation);
+            _context.SaveChanges();
+            return RedirectToAction("History");
 
 
+
+        }
+        private void SaveCalculation(int number1, int number2, string operation, double result)
+        {
+            Calculation calculation = new Calculation
+            {
+                Number1 = number1,
+                Number2 = number2,
+                Operation = operation,
+                Result = result,
+                CreatedDate = DateTime.Now
+            };
+
+            _context.Calculations.Add(calculation);
+            _context.SaveChanges();
+        }
+
+        private double CalculateResult(int number1, int number2, string operation)
+        {
+            if (operation == "+")
+                return number1 + number2;
+            if (operation == "-")
+                return number1 - number2;
+            if (operation == "*")
+                return number1 * number2;
+            if (operation == "/")
+                return (double)number1 / number2;
+            throw new ArgumentException("Invalid operation.");
+        }
     }
 }
